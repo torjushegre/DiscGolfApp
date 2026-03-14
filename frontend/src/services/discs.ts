@@ -69,7 +69,7 @@ export const uploadDiscPhoto = async (discId: number, file: File) => {
   const fileName = `${discId}-${Date.now()}.${fileExt}`;
 
   // Upload to Supabase Storage
-  const { data: uploadData, error: uploadError } = await supabase.storage
+  const { error: uploadError } = await supabase.storage
     .from('disc-photos')
     .upload(fileName, file);
 

@@ -6,7 +6,7 @@ interface ConfettiProps {
 
 function Confetti({ isActive = true }: ConfettiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const particlesRef = useRef<any[]>([]);
 
   useEffect(() => {
