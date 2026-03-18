@@ -10,6 +10,8 @@ export interface DiscCreate {
   fade: number;
   status?: string;
   photo_url?: string | null;
+  ace_course?: string;
+  ace_hole?: number;
 }
 
 export interface Disc {
