@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Bag from './components/Bag';
 import Shelf from './components/Shelf';
 import WallOfFame from './components/WallOfFame';
 import AddDiscForm from './components/AddDiscForm';
+import Dashboard from './components/Dashboard';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -12,7 +13,7 @@ function App() {
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <Routes>
-            <Route path="/" element={<Navigate to="/bag" replace />} />
+            <Route path="/" element={<Dashboard />} />
             <Route path="/bag" element={<Bag />} />
             <Route path="/shelf" element={<Shelf />} />
             <Route path="/wall-of-fame" element={<WallOfFame />} />

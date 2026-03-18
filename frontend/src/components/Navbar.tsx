@@ -1,12 +1,22 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 function Navbar() {
+  const location = useLocation();
+
   const navItems = [
+    { name: 'Dashboard', path: '/' },
     { name: 'Bag', path: '/bag' },
     { name: 'Shelf', path: '/shelf' },
     { name: 'Wall of Fame', path: '/wall-of-fame' },
     { name: 'Add Disc', path: '/add-disc' },
   ];
+
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname === path;
+  };
 
   return (
     <nav className="bg-blue-600 text-white shadow-lg">
@@ -20,7 +30,11 @@ function Navbar() {
               <Link
                 key={item.path}
                 to={item.path}
-                className="px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium"
+                className={`px-4 py-2 rounded-md transition-colors font-medium ${
+                  isActive(item.path)
+                    ? 'bg-blue-800 ring-1 ring-blue-400'
+                    : 'hover:bg-blue-700'
+                }`}
               >
                 {item.name}
               </Link>

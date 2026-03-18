@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createDisc, uploadDiscPhoto } from '../services/discs';
+import { createDisc, uploadDiscPhoto, getCourses } from '../services/discs';
+import type { Course } from '../services/discs';
 
 interface FlightNumbers {
   speed: number;
@@ -22,14 +23,32 @@ function AddDiscForm() {
   });
   const [status, setStatus] = useState('shelf');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Ace fields for Wall of Fame
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [aceCourse, setAceCourse] = useState('');
+  const [aceHole, setAceHole] = useState(1);
+
+  // Fetch courses when Wall of Fame is selected
+  useEffect(() => {
+    if (status === 'wall_of_fame') {
+      getCourses().then(({ data }) => setCourses(data || []));
+    }
+  }, [status]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -49,6 +68,8 @@ function AddDiscForm() {
         turn: flightNumbers.turn,
         fade: flightNumbers.fade,
         status,
+        ace_course: status === 'wall_of_fame' ? aceCourse : undefined,
+        ace_hole: status === 'wall_of_fame' ? aceHole : undefined,
       });
 
       if (createError) throw createError;
@@ -200,6 +221,53 @@ function AddDiscForm() {
           </select>
         </div>
 
+        {status === 'wall_of_fame' && (
+          <div className="mb-6 grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Course
+              </label>
+              <select
+                value={aceCourse}
+                onChange={(e) => {
+                  setAceCourse(e.target.value);
+                  setAceHole(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">Select course...</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.name}>
+                    {course.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Hole
+              </label>
+              <select
+                value={aceHole}
+                onChange={(e) => setAceHole(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={!aceCourse}
+              >
+                {aceCourse &&
+                  courses
+                    .find((c) => c.name === aceCourse)
+                    ?.holes.map((hole) => (
+                      <option key={hole} value={hole}>
+                        Hole {hole}
+                      </option>
+                    ))}
+              </select>
+            </div>
+          </div>
+        )}
+
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-bold mb-2">
             Upload Photo (optional)
@@ -210,6 +278,16 @@ function AddDiscForm() {
             onChange={handleImageUpload}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
+          {imagePreview && (
+            <div className="mt-4">
+              <p className="text-sm text-gray-600 mb-2">Preview:</p>
+              <img
+                src={imagePreview}
+                alt="Disc preview"
+                className="w-48 h-48 object-cover rounded-lg border border-gray-300"
+              />
+            </div>
+          )}
         </div>
 
         <button

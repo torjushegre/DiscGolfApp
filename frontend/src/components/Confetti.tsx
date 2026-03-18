@@ -1,13 +1,26 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+interface Particle {
+  x: number;
+  y: number;
+  color: string;
+  size: number;
+  speedY: number;
+  speedX: number;
+  rotation: number;
+  rotationSpeed: number;
+}
 
 interface ConfettiProps {
   isActive?: boolean;
+  duration?: number;
 }
 
-function Confetti({ isActive = true }: ConfettiProps) {
+function Confetti({ isActive = true, duration = 5000 }: ConfettiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
-  const particlesRef = useRef<any[]>([]);
+  const particlesRef = useRef<Particle[]>([]);
+  const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
     if (!isActive || !canvasRef.current) return;
@@ -21,7 +34,7 @@ function Confetti({ isActive = true }: ConfettiProps) {
 
     const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
 
-    const particles: any[] = [];
+    const particles: Particle[] = [];
     const particleCount = 150;
 
     for (let i = 0; i < particleCount; i++) {
@@ -41,7 +54,7 @@ function Confetti({ isActive = true }: ConfettiProps) {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      particles.forEach((particle) => {
+      particlesRef.current.forEach((particle) => {
         particle.y += particle.speedY;
         particle.x += particle.speedX;
         particle.rotation += particle.rotationSpeed;
@@ -71,20 +84,36 @@ function Confetti({ isActive = true }: ConfettiProps) {
 
     window.addEventListener('resize', handleResize);
 
+    // Auto-stop after duration
+    const stopTimer = setTimeout(() => {
+      // Fade out
+      const fadeInterval = setInterval(() => {
+        setOpacity((prev) => {
+          if (prev <= 0.05) {
+            clearInterval(fadeInterval);
+            return 0;
+          }
+          return prev - 0.05;
+        });
+      }, 50);
+    }, duration);
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
       window.removeEventListener('resize', handleResize);
+      clearTimeout(stopTimer);
     };
-  }, [isActive]);
+  }, [isActive, duration]);
 
-  if (!isActive) return null;
+  if (!isActive || opacity === 0) return null;
 
   return (
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-50"
+      style={{ opacity }}
     />
   );
 }
