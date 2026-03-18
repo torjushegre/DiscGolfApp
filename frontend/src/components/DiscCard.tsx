@@ -80,6 +80,7 @@ function DiscCard({
               className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={disc.status}
               onChange={(e) => handleStatusChange(disc.id, e.target.value)}
+              onClick={(e) => e.stopPropagation()}
             >
               <option value="bag">Bag</option>
               <option value="shelf">Shelf</option>

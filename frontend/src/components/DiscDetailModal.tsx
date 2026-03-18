@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { updateDisc, deleteDisc, getCourses } from '../services/discs';
-import type { Disc, Course } from '../services/discs';
+import { useState } from 'react';
+import { updateDisc, deleteDisc } from '../services/discs';
+import type { Disc } from '../services/discs';
 
 interface DiscDetailModalProps {
   disc: Disc;
@@ -15,7 +15,6 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [courses, setCourses] = useState<Course[]>([]);
 
   // Form state
   const [brand, setBrand] = useState(disc.brand);
@@ -29,17 +28,6 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
   const [comment, setComment] = useState(disc.comment || '');
   const [aceCourse, setAceCourse] = useState(disc.ace_course || '');
   const [aceHole, setAceHole] = useState(disc.ace_hole || 1);
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchCourses();
-    }
-  }, [isOpen]);
-
-  const fetchCourses = async () => {
-    const { data } = await getCourses();
-    setCourses(data || []);
-  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -167,7 +155,7 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2">Type</label>
                 <div className="flex gap-4">
-                  {['driver', 'midrange', 'putter'].map((type) => (
+                  {['driver', 'midrange', 'approach', 'putter'].map((type) => (
                     <label key={type} className="flex items-center">
                       <input
                         type="radio"
@@ -224,34 +212,23 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">Course</label>
-                    <select
+                    <input
+                      type="text"
                       value={aceCourse}
-                      onChange={(e) => {
-                        setAceCourse(e.target.value);
-                        setAceHole(1);
-                      }}
+                      onChange={(e) => setAceCourse(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    >
-                      <option value="">Select course...</option>
-                      {courses.map((course) => (
-                        <option key={course.id} value={course.name}>{course.name}</option>
-                      ))}
-                    </select>
+                      placeholder="Course name"
+                    />
                   </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">Hole</label>
-                    <select
+                    <input
+                      type="number"
                       value={aceHole}
-                      onChange={(e) => setAceHole(parseInt(e.target.value))}
+                      onChange={(e) => setAceHole(parseInt(e.target.value) || 1)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      disabled={!aceCourse}
-                    >
-                      {aceCourse && courses
-                        .find((c) => c.name === aceCourse)
-                        ?.holes.map((hole) => (
-                          <option key={hole} value={hole}>Hole {hole}</option>
-                        ))}
-                    </select>
+                      min={1}
+                    />
                   </div>
                 </div>
               )}

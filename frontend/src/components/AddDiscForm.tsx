@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createDisc, uploadDiscPhoto, getCourses } from '../services/discs';
-import type { Course } from '../services/discs';
+import { createDisc, uploadDiscPhoto } from '../services/discs';
 
 interface FlightNumbers {
   speed: number;
@@ -29,17 +28,9 @@ function AddDiscForm() {
   const [error, setError] = useState<string | null>(null);
 
   // Ace fields for Wall of Fame
-  const [courses, setCourses] = useState<Course[]>([]);
   const [aceCourse, setAceCourse] = useState('');
   const [aceHole, setAceHole] = useState(1);
   const [comment, setComment] = useState('');
-
-  // Fetch courses when Wall of Fame is selected
-  useEffect(() => {
-    if (status === 'wall_of_fame') {
-      getCourses().then(({ data }) => setCourses(data || []));
-    }
-  }, [status]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -164,8 +155,8 @@ function AddDiscForm() {
           <label className="block text-gray-700 text-sm font-bold mb-2">
             Type
           </label>
-          <div className="flex gap-4">
-            {['driver', 'midrange', 'putter'].map((type) => (
+          <div className="flex gap-4 flex-wrap">
+            {['driver', 'midrange', 'approach', 'putter'].map((type) => (
               <label key={type} className="flex items-center">
                 <input
                   type="radio"
@@ -236,43 +227,27 @@ function AddDiscForm() {
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 Course
               </label>
-              <select
+              <input
+                type="text"
                 value={aceCourse}
-                onChange={(e) => {
-                  setAceCourse(e.target.value);
-                  setAceHole(1);
-                }}
+                onChange={(e) => setAceCourse(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                placeholder="Course name"
                 required
-              >
-                <option value="">Select course...</option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.name}>
-                    {course.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 Hole
               </label>
-              <select
+              <input
+                type="number"
                 value={aceHole}
-                onChange={(e) => setAceHole(parseInt(e.target.value))}
+                onChange={(e) => setAceHole(parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                min={1}
                 required
-                disabled={!aceCourse}
-              >
-                {aceCourse &&
-                  courses
-                    .find((c) => c.name === aceCourse)
-                    ?.holes.map((hole) => (
-                      <option key={hole} value={hole}>
-                        Hole {hole}
-                      </option>
-                    ))}
-              </select>
+              />
             </div>
           </div>
         )}
