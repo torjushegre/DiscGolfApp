@@ -91,3 +91,23 @@ export const uploadDiscPhoto = async (discId: number, file: File) => {
 export const getCourses = async () => {
   return supabase.from('courses').select('*');
 };
+
+export const updateDisc = async (discId: number, discData: Partial<DiscCreate>) => {
+  return supabase.from('discs').update(discData).eq('id', discId).select().single();
+};
+
+export const deleteDisc = async (discId: number) => {
+  // First get disc to check if it has photo
+  const { data: disc } = await supabase.from('discs').select('photo_url').eq('id', discId).single();
+
+  // Delete photo from storage if exists
+  if (disc?.photo_url) {
+    const fileName = disc.photo_url.split('/').pop();
+    if (fileName) {
+      await supabase.storage.from('disc-photos').remove([fileName]);
+    }
+  }
+
+  // Delete disc
+  return supabase.from('discs').delete().eq('id', discId);
+};

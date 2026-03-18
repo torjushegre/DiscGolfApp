@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getDiscs } from '../services/discs';
 import type { Disc } from '../services/discs';
 import DiscCard from './DiscCard';
+import DiscDetailModal from './DiscDetailModal';
 import Confetti from './Confetti';
 
 interface DiscListProps {
@@ -23,6 +24,7 @@ function DiscList({
 }: DiscListProps) {
   const [discs, setDiscs] = useState<Disc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDisc, setSelectedDisc] = useState<Disc | null>(null);
 
   useEffect(() => {
     fetchDiscs();
@@ -39,6 +41,14 @@ function DiscList({
       setDiscs([]);
       setLoading(false);
     }
+  };
+
+  const handleDiscUpdate = (updatedDisc: Disc) => {
+    setDiscs((prev) => prev.map((d) => (d.id === updatedDisc.id ? updatedDisc : d)));
+  };
+
+  const handleDiscDelete = (discId: number) => {
+    setDiscs((prev) => prev.filter((d) => d.id !== discId));
   };
 
   if (loading) {
@@ -84,15 +94,30 @@ function DiscList({
           }
         >
           {discs.map((disc) => (
-            <DiscCard
+            <div
               key={disc.id}
-              disc={disc}
-              onStatusChange={fetchDiscs}
-              variant={isHighlight ? 'highlight' : 'default'}
-              showAceInfo={isHighlight}
-            />
+              onClick={() => setSelectedDisc(disc)}
+              className="cursor-pointer"
+            >
+              <DiscCard
+                disc={disc}
+                onStatusChange={fetchDiscs}
+                variant={isHighlight ? 'highlight' : 'default'}
+                showAceInfo={isHighlight}
+              />
+            </div>
           ))}
         </div>
+      )}
+
+      {selectedDisc && (
+        <DiscDetailModal
+          disc={selectedDisc}
+          isOpen={true}
+          onClose={() => setSelectedDisc(null)}
+          onUpdate={handleDiscUpdate}
+          onDelete={handleDiscDelete}
+        />
       )}
     </div>
   );
