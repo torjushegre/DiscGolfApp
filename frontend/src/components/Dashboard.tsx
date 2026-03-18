@@ -36,7 +36,7 @@ function Dashboard() {
       path: '/bag',
       description: `${bagCount} discs ready to throw`,
       icon: '🎒',
-      color: 'bg-blue-500',
+      color: 'bg-gray-600',
     },
     {
       name: 'Shelf',
@@ -64,7 +64,7 @@ function Dashboard() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
         <p className="mt-4 text-gray-600">Loading your collection...</p>
       </div>
     );
@@ -86,7 +86,7 @@ function Dashboard() {
           <p className="text-sm text-gray-600 mt-1">Total Discs</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <p className="text-3xl font-bold text-blue-600">{bagCount}</p>
+          <p className="text-3xl font-bold text-gray-900">{bagCount}</p>
           <p className="text-sm text-gray-600 mt-1">In Bag</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
@@ -124,7 +124,7 @@ function Dashboard() {
             <h2 className="text-2xl font-bold text-gray-800">Recently Added</h2>
             <Link
               to="/shelf"
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              className="text-gray-600 hover:text-gray-900 font-medium"
             >
               View all →
             </Link>
@@ -169,7 +169,7 @@ function Dashboard() {
           <p className="text-gray-600 text-lg">No discs in your collection yet.</p>
           <Link
             to="/add-disc"
-            className="inline-block mt-4 bg-blue-600 text-white px-6 py-2 rounded-md font-bold hover:bg-blue-700"
+            className="inline-block mt-4 bg-gray-800 text-white px-6 py-2 rounded-md font-bold hover:bg-gray-900"
           >
             Add Your First Disc
           </Link>

@@ -124,7 +124,7 @@ function AddDiscForm() {
             <select
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               required
             >
               <option value="">Select brand...</option>
@@ -145,7 +145,7 @@ function AddDiscForm() {
               type="text"
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               placeholder="e.g. Buzzz, Aviar, Destroyer"
               required
             />
@@ -196,7 +196,7 @@ function AddDiscForm() {
                       [field.key]: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-gray-500"
                 />
                 <span className="text-xs text-gray-500 text-center block mt-1">
                   {field.name}
@@ -213,7 +213,7 @@ function AddDiscForm() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
           >
             <option value="shelf">Shelf</option>
             <option value="bag">Bag</option>
@@ -233,7 +233,7 @@ function AddDiscForm() {
                   setAceCourse(e.target.value);
                   setAceHole(1);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
                 required
               >
                 <option value="">Select course...</option>
@@ -251,7 +251,7 @@ function AddDiscForm() {
               <select
                 value={aceHole}
                 onChange={(e) => setAceHole(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
                 required
                 disabled={!aceCourse}
               >
@@ -293,7 +293,7 @@ function AddDiscForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-bold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-gray-800 text-white py-3 px-4 rounded-md font-bold hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Adding disc...' : 'Add Disc'}
         </button>

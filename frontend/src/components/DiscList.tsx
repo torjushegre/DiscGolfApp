@@ -23,7 +23,6 @@ function DiscList({
 }: DiscListProps) {
   const [discs, setDiscs] = useState<Disc[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDiscs();
@@ -36,7 +35,8 @@ function DiscList({
       setDiscs(data || []);
       setLoading(false);
     } catch (err) {
-      setError(`Failed to load ${title.toLowerCase()}`);
+      // Treat fetch failures as empty state - backend may not be configured
+      setDiscs([]);
       setLoading(false);
     }
   };
@@ -44,15 +44,12 @@ function DiscList({
   if (loading) {
     return (
       <div className="text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
         <p className="mt-2 text-gray-600">Loading {title.toLowerCase()}...</p>
       </div>
     );
   }
 
-  if (error) {
-    return <div className="text-red-600 text-center py-8">{error}</div>;
-  }
 
   const isHighlight = status === 'wall_of_fame';
 

@@ -11,7 +11,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pt-24 md:pt-28">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/bag" element={<Bag />} />
