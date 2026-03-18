@@ -12,6 +12,7 @@ CREATE TABLE discs (
     photo_url TEXT,
     ace_hole INTEGER,
     ace_course TEXT,
+    comment TEXT,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );

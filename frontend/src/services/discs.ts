@@ -12,6 +12,7 @@ export interface DiscCreate {
   photo_url?: string | null;
   ace_course?: string;
   ace_hole?: number;
+  comment?: string;
 }
 
 export interface Disc {
@@ -27,6 +28,7 @@ export interface Disc {
   photo_url: string | null;
   ace_hole: number | null;
   ace_course: string | null;
+  comment: string | null;
   created_at: string;
   updated_at: string;
 }

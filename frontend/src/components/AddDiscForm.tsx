@@ -32,6 +32,7 @@ function AddDiscForm() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [aceCourse, setAceCourse] = useState('');
   const [aceHole, setAceHole] = useState(1);
+  const [comment, setComment] = useState('');
 
   // Fetch courses when Wall of Fame is selected
   useEffect(() => {
@@ -70,6 +71,7 @@ function AddDiscForm() {
         status,
         ace_course: status === 'wall_of_fame' ? aceCourse : undefined,
         ace_hole: status === 'wall_of_fame' ? aceHole : undefined,
+        comment: comment || undefined,
       });
 
       if (createError) throw createError;
@@ -179,25 +181,26 @@ function AddDiscForm() {
           </label>
           <div className="grid grid-cols-4 gap-4">
             {[
-              { name: 'Speed', key: 'speed', min: 1, max: 14 },
-              { name: 'Glide', key: 'glide', min: 1, max: 7 },
-              { name: 'Turn', key: 'turn', min: -5, max: 1 },
+              { name: 'Speed', key: 'speed', min: 0, max: 15 },
+              { name: 'Glide', key: 'glide', min: 0, max: 7 },
+              { name: 'Turn', key: 'turn', min: -5, max: 5 },
               { name: 'Fade', key: 'fade', min: 0, max: 5 },
             ].map((field) => (
               <div key={field.key}>
-                <input
-                  type="number"
-                  min={field.min}
-                  max={field.max}
+                <select
                   value={flightNumbers[field.key as keyof FlightNumbers]}
                   onChange={(e) =>
                     setFlightNumbers({
                       ...flightNumbers,
-                      [field.key]: parseInt(e.target.value) || 0,
+                      [field.key]: parseInt(e.target.value),
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-gray-500"
-                />
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white"
+                >
+                  {Array.from({ length: field.max - field.min + 1 }, (_, i) => field.min + i).map((val) => (
+                    <option key={val} value={val}>{val}</option>
+                  ))}
+                </select>
                 <span className="text-xs text-gray-500 text-center block mt-1">
                   {field.name}
                 </span>
@@ -270,6 +273,19 @@ function AddDiscForm() {
 
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-bold mb-2">
+            Kommentar (optional)
+          </label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+            placeholder="F.eks. spesielle minner, betydning, eller historie bak disken..."
+            rows={3}
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
             Upload Photo (optional)
           </label>
           <input
@@ -284,7 +300,7 @@ function AddDiscForm() {
               <img
                 src={imagePreview}
                 alt="Disc preview"
-                className="w-48 h-48 object-cover rounded-lg border border-gray-300"
+                className="w-48 h-48 object-cover rounded-full border-4 border-gray-200 mx-auto"
               />
             </div>
           )}

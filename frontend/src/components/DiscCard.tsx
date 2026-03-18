@@ -41,7 +41,7 @@ function DiscCard({
         <img
           src={disc.photo_url}
           alt={`${disc.brand} ${disc.model}`}
-          className="w-full h-48 object-cover"
+          className="w-48 h-48 object-cover rounded-full border-4 border-gray-200 mx-auto mt-4"
         />
       )}
       <div className="p-4">
@@ -59,6 +59,12 @@ function DiscCard({
             {disc.speed}/{disc.glide}/{disc.turn}/{disc.fade}
           </span>
         </div>
+
+        {disc.comment && (
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-4">
+            <p className="text-gray-700 text-sm italic">"{disc.comment}"</p>
+          </div>
+        )}
 
         {showAceInfo && disc.ace_course && (
           <div className="bg-green-50 rounded-lg p-4 border border-green-200 mb-4">
