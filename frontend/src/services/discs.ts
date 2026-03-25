@@ -57,6 +57,7 @@ export interface Disc {
   ace_course: string | null;
   color: string;
   comment: string | null;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -70,7 +71,7 @@ export interface Course {
 export const getDiscs = async (status?: DiscStatus) => {
   let query = supabase.from('discs').select('*');
   if (status) query = query.eq('status', status);
-  return query.order('created_at', { ascending: false });
+  return query.order('sort_order', { ascending: true });
 };
 
 export const getAces = async () => {
@@ -120,6 +121,16 @@ export const getCourses = async () => {
 
 export const updateDisc = async (discId: number, discData: Partial<DiscCreate>) => {
   return supabase.from('discs').update(discData).eq('id', discId).select().single();
+};
+
+export const reorderDiscs = async (updates: { id: number; sort_order: number; status?: DiscStatus }[]) => {
+  return Promise.all(
+    updates.map(({ id, sort_order, status }) => {
+      const data: { sort_order: number; status?: DiscStatus } = { sort_order };
+      if (status) data.status = status;
+      return supabase.from('discs').update(data).eq('id', id);
+    }),
+  );
 };
 
 export const deleteDisc = async (discId: number) => {

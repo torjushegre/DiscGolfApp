@@ -1,9 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { DndContext, type DragEndEvent, type DragStartEvent, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import {
+  DndContext,
+  type DragEndEvent,
+  type DragStartEvent,
+  type DragOverEvent,
+  DragOverlay,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import { AnimatePresence } from 'framer-motion';
-import { getDiscs, getAces, moveDisc } from '../services/discs';
-import type { Disc } from '../services/discs';
+import { getDiscs, getAces, reorderDiscs } from '../services/discs';
+import type { Disc, DiscStatus } from '../services/discs';
 import BagZone from './BagZone';
 import ShelfZone from './ShelfZone';
 import WallOfFameZone from './WallOfFameZone';
@@ -12,7 +23,8 @@ import DiscDetailModal from './DiscDetailModal';
 import DraggableDisc from './DraggableDisc';
 
 function Room() {
-  const [discs, setDiscs] = useState<Disc[]>([]);
+  const [bagDiscs, setBagDiscs] = useState<Disc[]>([]);
+  const [shelfDiscs, setShelfDiscs] = useState<Disc[]>([]);
   const [aces, setAces] = useState<Disc[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDisc, setActiveDisc] = useState<Disc | null>(null);
@@ -25,10 +37,12 @@ function Room() {
   const fetchData = useCallback(async () => {
     try {
       const [discsRes, acesRes] = await Promise.all([getDiscs(), getAces()]);
-      if (discsRes.data) setDiscs(discsRes.data);
+      const allDiscs = discsRes.data || [];
+      setBagDiscs(allDiscs.filter((d) => d.status === 'bag'));
+      setShelfDiscs(allDiscs.filter((d) => d.status === 'shelf'));
       if (acesRes.data) setAces(acesRes.data);
     } catch {
-      // Silently handle fetch failures
+      // silent
     } finally {
       setLoading(false);
     }
@@ -38,35 +52,130 @@ function Room() {
     fetchData();
   }, [fetchData]);
 
-  const bagDiscs = discs.filter((d) => d.status === 'bag');
-  const shelfDiscs = discs.filter((d) => d.status === 'shelf');
+  const allDiscs = [...bagDiscs, ...shelfDiscs];
+
+  // Find which container a disc belongs to
+  const findContainer = (discId: number | string): 'bag' | 'shelf' | null => {
+    if (bagDiscs.some((d) => d.id === discId)) return 'bag';
+    if (shelfDiscs.some((d) => d.id === discId)) return 'shelf';
+    return null;
+  };
 
   const handleDragStart = (event: DragStartEvent) => {
-    const disc = discs.find((d) => d.id === event.active.id);
+    const disc = allDiscs.find((d) => d.id === event.active.id);
     setActiveDisc(disc || null);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = active.id as number;
+    const overId = over.id;
+
+    const activeContainer = findContainer(activeId);
+    // over could be a zone or another disc
+    let overContainer: 'bag' | 'shelf' | null =
+      overId === 'bag-zone' ? 'bag' :
+      overId === 'shelf-zone' ? 'shelf' :
+      findContainer(overId as number);
+
+    if (!activeContainer || !overContainer || activeContainer === overContainer) return;
+
+    // Move disc between containers in real-time
+    const disc = allDiscs.find((d) => d.id === activeId);
+    if (!disc) return;
+
+    if (activeContainer === 'bag') {
+      setBagDiscs((prev) => prev.filter((d) => d.id !== activeId));
+      setShelfDiscs((prev) => {
+        const overIndex = prev.findIndex((d) => d.id === overId);
+        const insertAt = overIndex >= 0 ? overIndex : prev.length;
+        const newList = [...prev];
+        newList.splice(insertAt, 0, { ...disc, status: 'shelf' });
+        return newList;
+      });
+    } else {
+      setShelfDiscs((prev) => prev.filter((d) => d.id !== activeId));
+      setBagDiscs((prev) => {
+        const overIndex = prev.findIndex((d) => d.id === overId);
+        const insertAt = overIndex >= 0 ? overIndex : prev.length;
+        const newList = [...prev];
+        newList.splice(insertAt, 0, { ...disc, status: 'bag' });
+        return newList;
+      });
+    }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveDisc(null);
-
     if (!over) return;
 
-    const targetZone = over.id as string;
-    const disc = discs.find((d) => d.id === active.id);
-    if (!disc) return;
+    const activeId = active.id as number;
+    const overId = over.id;
 
-    const newStatus = targetZone === 'bag-zone' ? 'bag' : targetZone === 'shelf-zone' ? 'shelf' : null;
-    if (!newStatus || newStatus === disc.status) return;
+    const activeContainer = findContainer(activeId);
+    if (!activeContainer) return;
 
-    // Optimistic update
-    setDiscs((prev) => prev.map((d) => (d.id === disc.id ? { ...d, status: newStatus as 'bag' | 'shelf' } : d)));
-    const { error } = await moveDisc(disc.id, newStatus as 'bag' | 'shelf');
-    if (error) fetchData(); // Revert on error
+    // Check if dropped on a zone or on another disc in the same zone
+    const isZoneDrop = overId === 'bag-zone' || overId === 'shelf-zone';
+    const overContainer = isZoneDrop
+      ? (overId === 'bag-zone' ? 'bag' : 'shelf')
+      : findContainer(overId as number);
+
+    if (!overContainer) return;
+
+    // Reorder within same container
+    if (activeContainer === overContainer && !isZoneDrop) {
+      const setDiscs = activeContainer === 'bag' ? setBagDiscs : setShelfDiscs;
+      const currentList = activeContainer === 'bag' ? bagDiscs : shelfDiscs;
+
+      const oldIndex = currentList.findIndex((d) => d.id === activeId);
+      const newIndex = currentList.findIndex((d) => d.id === overId);
+
+      if (oldIndex !== newIndex) {
+        const newList = arrayMove(currentList, oldIndex, newIndex);
+        setDiscs(newList);
+        persistOrder(newList, activeContainer);
+      }
+      return;
+    }
+
+    // Cross-container move already happened in handleDragOver
+    // Just persist the current state
+    persistOrder(bagDiscs, 'bag');
+    persistOrder(shelfDiscs, 'shelf');
+  };
+
+  const persistOrder = async (discs: Disc[], status: DiscStatus) => {
+    const updates = discs.map((d, i) => ({
+      id: d.id,
+      sort_order: i,
+      status,
+    }));
+    await reorderDiscs(updates);
   };
 
   const handleDiscUpdate = (updatedDisc: Disc) => {
-    setDiscs((prev) => prev.map((d) => (d.id === updatedDisc.id ? updatedDisc : d)));
+    setBagDiscs((prev) => prev.map((d) => (d.id === updatedDisc.id ? updatedDisc : d)));
+    setShelfDiscs((prev) => prev.map((d) => (d.id === updatedDisc.id ? updatedDisc : d)));
+
+    // Handle status change within modal
+    if (updatedDisc.status === 'bag') {
+      setShelfDiscs((prev) => prev.filter((d) => d.id !== updatedDisc.id));
+      setBagDiscs((prev) => {
+        if (!prev.find((d) => d.id === updatedDisc.id)) return [...prev, updatedDisc];
+        return prev;
+      });
+    } else {
+      setBagDiscs((prev) => prev.filter((d) => d.id !== updatedDisc.id));
+      setShelfDiscs((prev) => {
+        if (!prev.find((d) => d.id === updatedDisc.id)) return [...prev, updatedDisc];
+        return prev;
+      });
+    }
+
     if (updatedDisc.is_ace) {
       setAces((prev) => {
         const exists = prev.find((a) => a.id === updatedDisc.id);
@@ -79,7 +188,8 @@ function Room() {
   };
 
   const handleDiscDelete = (discId: number) => {
-    setDiscs((prev) => prev.filter((d) => d.id !== discId));
+    setBagDiscs((prev) => prev.filter((d) => d.id !== discId));
+    setShelfDiscs((prev) => prev.filter((d) => d.id !== discId));
     setAces((prev) => prev.filter((a) => a.id !== discId));
   };
 
@@ -99,27 +209,24 @@ function Room() {
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Stats Overlay */}
         <StatsOverlay
-          total={discs.length}
+          total={allDiscs.length}
           bag={bagDiscs.length}
           shelf={shelfDiscs.length}
           aces={aces.length}
         />
 
-        {/* Wall of Fame */}
         <WallOfFameZone aces={aces} onDiscClick={setSelectedDisc} />
 
-        {/* Bag and Shelf */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <BagZone discs={bagDiscs} onDiscClick={setSelectedDisc} />
           <ShelfZone discs={shelfDiscs} onDiscClick={setSelectedDisc} />
         </div>
 
-        {/* Quick Actions */}
         <div className="flex justify-center gap-4 pt-2 pb-4">
           <Link
             to="/add-disc"
@@ -136,14 +243,12 @@ function Room() {
         </div>
       </div>
 
-      {/* Drag Overlay */}
       <DragOverlay>
         {activeDisc && (
           <DraggableDisc disc={activeDisc} isDragging />
         )}
       </DragOverlay>
 
-      {/* Detail Modal */}
       <AnimatePresence>
         {selectedDisc && (
           <DiscDetailModal
