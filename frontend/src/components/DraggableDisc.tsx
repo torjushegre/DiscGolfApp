@@ -55,8 +55,8 @@ function DraggableDisc({ disc, onClick, isDragging = false, compact = false }: D
 
       {/* Ace badge */}
       {disc.is_ace && (
-        <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center text-[10px] shadow-md border border-yellow-500">
-          A
+        <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center text-[10px] shadow-md border border-yellow-500 leading-none">
+          🏆
         </div>
       )}
 

@@ -11,10 +11,14 @@ interface ShelfZoneProps {
 function ShelfZone({ discs, onDiscClick }: ShelfZoneProps) {
   const { isOver, setNodeRef } = useDroppable({ id: 'shelf-zone' });
 
-  // Split discs into shelf rows (6 per row)
+  // Split discs into shelf rows (5 per shelf)
   const rows: Disc[][] = [];
-  for (let i = 0; i < discs.length; i += 6) {
-    rows.push(discs.slice(i, i + 6));
+  for (let i = 0; i < discs.length; i += 5) {
+    rows.push(discs.slice(i, i + 5));
+  }
+  // Always show at least 2 shelf rows for visual effect
+  while (rows.length < 2) {
+    rows.push([]);
   }
 
   return (
@@ -26,26 +30,23 @@ function ShelfZone({ discs, onDiscClick }: ShelfZoneProps) {
       className={`relative rounded-2xl overflow-hidden transition-all duration-300 ${
         isOver ? 'ring-4 ring-stone-400/60 scale-[1.02]' : ''
       }`}
-      style={{ minHeight: 280 }}
+      style={{ minHeight: 300 }}
     >
-      {/* Background - dark wood shelf */}
-      <div className="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800 to-neutral-900 rounded-2xl" />
-      {/* Wood grain texture */}
-      <div className="absolute inset-0 opacity-15">
-        <div className="h-full w-full" style={{
-          backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(139,115,85,0.08) 20px, rgba(139,115,85,0.08) 21px)',
-        }} />
-      </div>
-
-      {/* Top edge */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-stone-500/30 to-transparent" />
+      {/* Wall background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-stone-800 via-stone-850 to-stone-900 rounded-2xl" />
+      {/* Wall texture */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+      }} />
 
       <div className="relative p-5">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-stone-700/50 flex items-center justify-center">
-            <svg className="w-6 h-6 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-lg bg-stone-700/50 flex items-center justify-center border border-stone-600/20">
+            <svg className="w-6 h-6 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6h16.5M3.75 12h16.5M3.75 18h16.5" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 6v12M18.75 6v12" />
             </svg>
           </div>
           <div>
@@ -54,38 +55,51 @@ function ShelfZone({ discs, onDiscClick }: ShelfZoneProps) {
           </div>
         </div>
 
-        {/* Shelf rows */}
-        {discs.length === 0 ? (
-          <div className="flex items-center justify-center py-8">
-            <p className="text-stone-500 text-sm italic">
-              Dra discer hit for å legge dem på hylla
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {rows.map((row, rowIdx) => (
-              <div key={rowIdx}>
-                <div className="flex flex-wrap gap-3 justify-start pb-3">
-                  {row.map((disc, i) => (
-                    <motion.div
-                      key={disc.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: (rowIdx * 6 + i) * 0.03 }}
-                    >
-                      <DraggableDisc
-                        disc={disc}
-                        onClick={() => onDiscClick(disc)}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
-                {/* Shelf board line - dark wood */}
-                <div className="h-[3px] bg-gradient-to-r from-stone-700/40 via-stone-600/60 to-stone-700/40 rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)]" />
+        {/* Shelf rows with brackets */}
+        <div className="space-y-1">
+          {rows.map((row, rowIdx) => (
+            <div key={rowIdx} className="relative">
+              {/* Discs sitting on shelf */}
+              <div className="flex flex-wrap gap-3 justify-start px-4 pb-2 min-h-[76px] items-end">
+                {row.map((disc, i) => (
+                  <motion.div
+                    key={disc.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: (rowIdx * 5 + i) * 0.03 }}
+                  >
+                    <DraggableDisc
+                      disc={disc}
+                      onClick={() => onDiscClick(disc)}
+                    />
+                  </motion.div>
+                ))}
+                {row.length === 0 && (
+                  <p className="text-stone-600 text-xs italic py-6 mx-auto">
+                    {rowIdx === 0 ? 'Dra discer hit' : ''}
+                  </p>
+                )}
               </div>
-            ))}
-          </div>
-        )}
+
+              {/* Shelf board */}
+              <div className="relative">
+                {/* Main board */}
+                <div className="h-[6px] bg-gradient-to-b from-stone-500/70 to-stone-700/70 rounded-sm shadow-[0_3px_6px_rgba(0,0,0,0.4)]" />
+                {/* Board front edge highlight */}
+                <div className="h-[1px] bg-stone-400/20" />
+
+                {/* Left bracket */}
+                <svg className="absolute -bottom-4 left-2 w-4 h-4 text-stone-500/50" viewBox="0 0 16 16">
+                  <path d="M2,0 L2,12 L14,12" fill="none" stroke="currentColor" strokeWidth="2" />
+                </svg>
+                {/* Right bracket */}
+                <svg className="absolute -bottom-4 right-2 w-4 h-4 text-stone-500/50" viewBox="0 0 16 16">
+                  <path d="M14,0 L14,12 L2,12" fill="none" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </motion.div>
   );
