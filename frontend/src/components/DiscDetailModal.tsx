@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { updateDisc, deleteDisc } from '../services/discs';
-import type { Disc } from '../services/discs';
+import { motion } from 'framer-motion';
+import { updateDisc, deleteDisc, DISC_TYPE_LABELS, DISC_COLORS } from '../services/discs';
+import type { Disc, DiscType, DiscStatus } from '../services/discs';
+import DiscSvg from './DiscSvg';
+
+const TYPE_ORDER: DiscType[] = ['distance_driver', 'fairway_driver', 'midrange', 'approach', 'putter'];
 
 interface DiscDetailModalProps {
   disc: Disc;
@@ -19,13 +23,15 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
   // Form state
   const [brand, setBrand] = useState(disc.brand);
   const [model, setModel] = useState(disc.model);
-  const [discType, setDiscType] = useState(disc.disc_type);
+  const [discType, setDiscType] = useState<DiscType>(disc.disc_type);
   const [speed, setSpeed] = useState(disc.speed);
   const [glide, setGlide] = useState(disc.glide);
   const [turn, setTurn] = useState(disc.turn);
   const [fade, setFade] = useState(disc.fade);
-  const [status, setStatus] = useState(disc.status);
+  const [status, setStatus] = useState<DiscStatus>(disc.status);
+  const [color, setColor] = useState(disc.color || '#e74c3c');
   const [comment, setComment] = useState(disc.comment || '');
+  const [isAce, setIsAce] = useState(disc.is_ace);
   const [aceCourse, setAceCourse] = useState(disc.ace_course || '');
   const [aceHole, setAceHole] = useState(disc.ace_hole || 1);
 
@@ -43,23 +49,27 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
         turn,
         fade,
         status,
+        color,
         comment: comment || undefined,
-        ...(status === 'wall_of_fame' && {
+        is_ace: isAce,
+        ...(isAce && {
           ace_course: aceCourse || undefined,
           ace_hole: aceHole,
+        }),
+        ...(!isAce && {
+          ace_course: undefined,
+          ace_hole: undefined,
         }),
       };
 
       const { data, error: updateError } = await updateDisc(disc.id, updateData);
-
       if (updateError) throw updateError;
       if (data) {
         onUpdate(data);
         setIsEditing(false);
       }
     } catch (err: any) {
-      console.error('Failed to update disc:', err);
-      setError(err?.message || 'Failed to update disc');
+      setError(err?.message || 'Klarte ikke å oppdatere');
     } finally {
       setLoading(false);
     }
@@ -67,16 +77,13 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
 
   const handleDelete = async () => {
     setLoading(true);
-    setError(null);
-
     try {
       const { error: deleteError } = await deleteDisc(disc.id);
       if (deleteError) throw deleteError;
       onDelete(disc.id);
       onClose();
     } catch (err: any) {
-      console.error('Failed to delete disc:', err);
-      setError(err?.message || 'Failed to delete disc');
+      setError(err?.message || 'Klarte ikke å slette');
     } finally {
       setLoading(false);
     }
@@ -85,93 +92,105 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-700"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {isEditing ? 'Edit Disc' : `${disc.brand} ${disc.model}`}
+        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+          <h2 className="text-2xl font-bold text-white">
+            {isEditing ? 'Rediger disc' : `${disc.brand} ${disc.model}`}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">
             ×
           </button>
         </div>
 
-        {/* Error */}
         {error && (
-          <div className="mx-6 mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="mx-6 mt-4 bg-red-900/50 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl">
             {error}
           </div>
         )}
 
-        {/* Content */}
         <div className="p-6">
-          {/* Photo */}
-          {disc.photo_url && (
-            <div className="flex justify-center mb-6">
+          {/* Photo or SVG */}
+          <div className="flex justify-center mb-6">
+            {disc.photo_url ? (
               <img
                 src={disc.photo_url}
                 alt={`${disc.brand} ${disc.model}`}
-                className="w-48 h-48 object-cover rounded-full border-4 border-gray-200"
+                className="w-48 h-48 object-cover rounded-full border-4 border-slate-600"
               />
-            </div>
-          )}
+            ) : (
+              <DiscSvg color={disc.color || '#e74c3c'} size={160} />
+            )}
+          </div>
 
           {isEditing ? (
-            /* Edit Form */
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Brand</label>
+                  <label className="block text-gray-300 text-sm font-bold mb-2">Merke</label>
                   <select
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white"
                   >
-                    <option value="">Select brand...</option>
+                    <option value="">Velg merke...</option>
                     <option value="Discraft">Discraft</option>
                     <option value="Innova">Innova</option>
                     <option value="Discmania">Discmania</option>
                     <option value="MVP">MVP</option>
                     <option value="Latitude 64">Latitude 64</option>
-                    <option value="Dynamic">Dynamic</option>
+                    <option value="Dynamic Discs">Dynamic Discs</option>
                     <option value="Prodigy">Prodigy</option>
+                    <option value="Kastaplast">Kastaplast</option>
+                    <option value="Westside Discs">Westside Discs</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Model</label>
+                  <label className="block text-gray-300 text-sm font-bold mb-2">Modell</label>
                   <input
                     type="text"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">Type</label>
-                <div className="flex gap-4">
-                  {['driver', 'midrange', 'approach', 'putter'].map((type) => (
-                    <label key={type} className="flex items-center">
-                      <input
-                        type="radio"
-                        value={type}
-                        checked={discType === type}
-                        onChange={() => setDiscType(type)}
-                        className="mr-2"
-                      />
-                      <span className="capitalize">{type}</span>
-                    </label>
+                <label className="block text-gray-300 text-sm font-bold mb-2">Type</label>
+                <div className="flex gap-2 flex-wrap">
+                  {TYPE_ORDER.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setDiscType(type)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        discType === type
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                      }`}
+                    >
+                      {DISC_TYPE_LABELS[type]}
+                    </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">Flight Numbers</label>
+                <label className="block text-gray-300 text-sm font-bold mb-2">Flight Numbers</label>
                 <div className="grid grid-cols-4 gap-4">
                   {[
                     { name: 'Speed', value: speed, set: setSpeed, min: 0, max: 15 },
@@ -183,7 +202,7 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
                       <select
                         value={field.value}
                         onChange={(e) => field.set(parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-center"
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-center text-white"
                       >
                         {Array.from({ length: field.max - field.min + 1 }, (_, i) => field.min + i).map((val) => (
                           <option key={val} value={val}>{val}</option>
@@ -196,37 +215,86 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">Location</label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="shelf">Shelf</option>
-                  <option value="bag">Bag</option>
-                  <option value="wall_of_fame">Wall of Fame</option>
-                </select>
+                <label className="block text-gray-300 text-sm font-bold mb-2">Plassering</label>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStatus('bag')}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      status === 'bag' ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-gray-300'
+                    }`}
+                  >
+                    Bag
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStatus('shelf')}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      status === 'shelf' ? 'bg-amber-600 text-white' : 'bg-slate-700 text-gray-300'
+                    }`}
+                  >
+                    Hylle
+                  </button>
+                </div>
               </div>
 
-              {status === 'wall_of_fame' && (
-                <div className="grid grid-cols-2 gap-4">
+              {/* Color */}
+              <div>
+                <label className="block text-gray-300 text-sm font-bold mb-2">Farge</label>
+                <div className="flex gap-2 flex-wrap">
+                  {DISC_COLORS.map((c) => (
+                    <button
+                      key={c.hex}
+                      type="button"
+                      onClick={() => setColor(c.hex)}
+                      className={`w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 ${
+                        color === c.hex ? 'border-white scale-110' : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: c.hex }}
+                      title={c.name}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Ace toggle */}
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div
+                    onClick={() => setIsAce(!isAce)}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${
+                      isAce ? 'bg-yellow-500' : 'bg-slate-600'
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                        isAce ? 'translate-x-6' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </div>
+                  <span className="text-gray-300 text-sm font-bold">Ace! 🏆</span>
+                </label>
+              </div>
+
+              {isAce && (
+                <div className="grid grid-cols-2 gap-4 p-3 bg-yellow-900/20 rounded-xl border border-yellow-500/20">
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">Course</label>
+                    <label className="block text-yellow-200 text-sm font-bold mb-2">Bane</label>
                     <input
                       type="text"
                       value={aceCourse}
                       onChange={(e) => setAceCourse(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      placeholder="Course name"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white"
+                      placeholder="Banenavn"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">Hole</label>
+                    <label className="block text-yellow-200 text-sm font-bold mb-2">Hull</label>
                     <input
                       type="number"
                       value={aceHole}
                       onChange={(e) => setAceHole(parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white"
                       min={1}
                     />
                   </div>
@@ -234,13 +302,13 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
               )}
 
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">Comment</label>
+                <label className="block text-gray-300 text-sm font-bold mb-2">Kommentar</label>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white"
                   rows={3}
-                  placeholder="Optional comment..."
+                  placeholder="Valgfri kommentar..."
                 />
               </div>
             </div>
@@ -250,32 +318,36 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-sm text-gray-500">Type</span>
-                  <p className="font-medium capitalize">{disc.disc_type}</p>
+                  <p className="font-medium text-white">{DISC_TYPE_LABELS[disc.disc_type]}</p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Flight Numbers</span>
-                  <p className="font-medium font-mono">
+                  <p className="font-medium font-mono text-white">
                     {disc.speed}/{disc.glide}/{disc.turn}/{disc.fade}
                   </p>
                 </div>
               </div>
 
               <div>
-                <span className="text-sm text-gray-500">Location</span>
-                <p className="font-medium capitalize">{disc.status.replace('_', ' ')}</p>
+                <span className="text-sm text-gray-500">Plassering</span>
+                <p className="font-medium text-white">
+                  {disc.status === 'bag' ? 'I bagen' : 'På hylla'}
+                </p>
               </div>
 
-              {disc.ace_course && (
-                <div>
-                  <span className="text-sm text-gray-500">Ace</span>
-                  <p className="font-medium">{disc.ace_course} - Hole {disc.ace_hole}</p>
+              {disc.is_ace && disc.ace_course && (
+                <div className="p-3 bg-yellow-900/20 rounded-xl border border-yellow-500/20">
+                  <span className="text-sm text-yellow-300">🏆 Ace</span>
+                  <p className="font-medium text-yellow-200">
+                    {disc.ace_course} - Hull {disc.ace_hole}
+                  </p>
                 </div>
               )}
 
               {disc.comment && (
                 <div>
-                  <span className="text-sm text-gray-500">Comment</span>
-                  <p className="italic text-gray-700">"{disc.comment}"</p>
+                  <span className="text-sm text-gray-500">Kommentar</span>
+                  <p className="italic text-gray-300">"{disc.comment}"</p>
                 </div>
               )}
             </div>
@@ -283,13 +355,13 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center p-6 border-t bg-gray-50">
+        <div className="flex justify-between items-center p-6 border-t border-slate-700">
           {!isEditing && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="px-4 py-2 text-red-600 hover:text-red-800 font-medium"
+              className="px-4 py-2 text-red-400 hover:text-red-300 font-medium"
             >
-              Delete
+              Slett
             </button>
           )}
 
@@ -298,25 +370,25 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
               <>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-4 py-2 text-gray-400 hover:text-white"
                   disabled={loading}
                 >
-                  Cancel
+                  Avbryt
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={loading}
-                  className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
                 >
-                  {loading ? 'Saving...' : 'Save'}
+                  {loading ? 'Lagrer...' : 'Lagre'}
                 </button>
               </>
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900"
+                className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600"
               >
-                Edit
+                Rediger
               </button>
             )}
           </div>
@@ -324,33 +396,33 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
 
         {/* Delete Confirmation */}
         {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Delete Disc?</h3>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to delete {disc.brand} {disc.model}? This cannot be undone.
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-700">
+              <h3 className="text-xl font-bold text-white mb-4">Slette disc?</h3>
+              <p className="text-gray-400 mb-6">
+                Er du sikker på at du vil slette {disc.brand} {disc.model}? Dette kan ikke angres.
               </p>
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-4 py-2 text-gray-400 hover:text-white"
                   disabled={loading}
                 >
-                  Cancel
+                  Avbryt
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={loading}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
                 >
-                  {loading ? 'Deleting...' : 'Delete'}
+                  {loading ? 'Sletter...' : 'Slett'}
                 </button>
               </div>
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 

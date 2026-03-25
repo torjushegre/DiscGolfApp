@@ -4,36 +4,32 @@ function Navbar() {
   const location = useLocation();
 
   const navItems = [
-    { name: 'Dashboard', path: '/' },
-    { name: 'Bag', path: '/bag' },
-    { name: 'Shelf', path: '/shelf' },
-    { name: 'Wall of Fame', path: '/wall-of-fame' },
-    { name: 'Add Disc', path: '/add-disc' },
+    { name: 'Rommet', path: '/' },
+    { name: 'Alle discer', path: '/all-discs' },
+    { name: 'Legg til', path: '/add-disc' },
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
-    }
+    if (path === '/') return location.pathname === '/';
     return location.pathname === path;
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white shadow-lg">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center justify-between py-4">
-          <Link to="/" className="text-xl font-bold mb-4 md:mb-0">
-            Disc Golf Collection
+        <div className="flex items-center justify-between h-16">
+          <Link to="/" className="text-xl font-bold text-white tracking-tight">
+            Disc Golf Room
           </Link>
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex gap-1">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`px-4 py-2 rounded-md transition-colors font-medium ${
+                className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                   isActive(item.path)
-                    ? 'bg-gray-700 ring-1 ring-gray-500'
-                    : 'hover:bg-gray-800'
+                    ? 'bg-emerald-600/20 text-emerald-300 ring-1 ring-emerald-500/30'
+                    : 'text-gray-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 {item.name}

@@ -1,22 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Bag from './components/Bag';
-import Shelf from './components/Shelf';
-import WallOfFame from './components/WallOfFame';
+import Room from './components/Room';
+import AllDiscs from './components/AllDiscs';
 import AddDiscForm from './components/AddDiscForm';
-import Dashboard from './components/Dashboard';
 import Navbar from './components/Navbar';
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 pt-24 md:pt-28">
+        <div className="container mx-auto px-4 py-8 pt-24">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/bag" element={<Bag />} />
-            <Route path="/shelf" element={<Shelf />} />
-            <Route path="/wall-of-fame" element={<WallOfFame />} />
+            <Route path="/" element={<Room />} />
+            <Route path="/all-discs" element={<AllDiscs />} />
             <Route path="/add-disc" element={<AddDiscForm />} />
           </Routes>
         </div>
