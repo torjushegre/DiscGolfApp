@@ -43,7 +43,7 @@ function BagZone({ lidDiscs, mainDiscs, onDiscClick }: BagZoneProps) {
       </div>
 
       {/* Bag shape */}
-      <div className="relative rounded-2xl overflow-hidden" style={{ minHeight: 420 }}>
+      <div className="relative rounded-2xl" style={{ minHeight: 420 }}>
         {/* Bag body - black fabric */}
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-800 via-neutral-900 to-neutral-950 rounded-2xl" />
 

@@ -34,11 +34,12 @@ function PodiumSlot({ rank, disc, onDiscClick }: { rank: number; disc: Disc | nu
         }`}
       >
         {disc ? (
-          <SortableContext items={[disc.id]} strategy={rectSortingStrategy}>
+          <SortableContext items={[`ace-${disc.id}`]} strategy={rectSortingStrategy}>
             <SortableDisc
               disc={disc}
               onClick={() => onDiscClick(disc)}
               size={rank === 0 ? 88 : 72}
+              idPrefix="ace-"
             />
           </SortableContext>
         ) : (
@@ -80,7 +81,7 @@ function WallOfFameZone({ podiumSlots, restAces, onDiscClick }: WallOfFameZonePr
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="relative rounded-2xl overflow-hidden"
+        className="relative rounded-2xl"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-yellow-950/50 via-slate-900/80 to-slate-900/60 rounded-2xl" />
         <div className="relative p-6 text-center">
@@ -103,7 +104,7 @@ function WallOfFameZone({ podiumSlots, restAces, onDiscClick }: WallOfFameZonePr
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
-      className="relative rounded-2xl overflow-hidden"
+      className="relative rounded-2xl"
     >
       <Confetti />
 
@@ -144,7 +145,7 @@ function WallOfFameZone({ podiumSlots, restAces, onDiscClick }: WallOfFameZonePr
           }`}
         >
           {restAces.length > 0 ? (
-            <SortableContext items={restAces.map((d) => d.id)} strategy={rectSortingStrategy}>
+            <SortableContext items={restAces.map((d) => `ace-${d.id}`)} strategy={rectSortingStrategy}>
               <div className="flex flex-wrap justify-center gap-4">
                 {restAces.map((disc) => (
                   <motion.div
@@ -153,7 +154,7 @@ function WallOfFameZone({ podiumSlots, restAces, onDiscClick }: WallOfFameZonePr
                     animate={{ opacity: 1, scale: 1 }}
                   >
                     <div className="flex flex-col items-center">
-                      <SortableDisc disc={disc} onClick={() => onDiscClick(disc)} size={64} />
+                      <SortableDisc disc={disc} onClick={() => onDiscClick(disc)} size={64} idPrefix="ace-" />
                       <p className="text-[10px] font-bold text-yellow-200/60 truncate max-w-[80px] mt-1 text-center">
                         {disc.brand} {disc.model}
                       </p>

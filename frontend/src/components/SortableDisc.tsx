@@ -8,9 +8,10 @@ interface SortableDiscProps {
   disc: Disc;
   onClick?: () => void;
   size?: number;
+  idPrefix?: string;
 }
 
-function SortableDisc({ disc, onClick, size = 72 }: SortableDiscProps) {
+function SortableDisc({ disc, onClick, size = 72, idPrefix = '' }: SortableDiscProps) {
   const {
     attributes,
     listeners,
@@ -19,7 +20,7 @@ function SortableDisc({ disc, onClick, size = 72 }: SortableDiscProps) {
     transition,
     isDragging,
   } = useSortable({
-    id: disc.id,
+    id: `${idPrefix}${disc.id}`,
     data: { disc },
   });
 
@@ -39,7 +40,7 @@ function SortableDisc({ disc, onClick, size = 72 }: SortableDiscProps) {
         e.stopPropagation();
         onClick?.();
       }}
-      className="relative group cursor-grab active:cursor-grabbing"
+      className="relative group cursor-grab active:cursor-grabbing hover:z-50"
       whileHover={{ scale: 1.08 }}
       layout
     >

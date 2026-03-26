@@ -81,7 +81,7 @@ function ShelfZone({ sections, onDiscClick }: ShelfZoneProps) {
       </div>
 
       {/* Shelf unit */}
-      <div className="relative rounded-2xl overflow-hidden" style={{ minHeight: 320 }}>
+      <div className="relative rounded-2xl" style={{ minHeight: 320 }}>
         {/* Wall background */}
         <div className="absolute inset-0 bg-gradient-to-b from-stone-800 to-stone-900 rounded-2xl" />
         <div className="absolute inset-0 opacity-[0.03]" style={{
