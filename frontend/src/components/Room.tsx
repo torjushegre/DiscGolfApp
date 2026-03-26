@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   DndContext,
   type DragEndEvent,
+  type DragOverEvent,
   type DragStartEvent,
   DragOverlay,
   closestCenter,
@@ -130,8 +131,7 @@ function Room() {
     setActiveDisc(disc || null);
   };
 
-  const handleLocationDragEnd = async (event: DragEndEvent) => {
-    setActiveDisc(null);
+  const handleLocationDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) return;
 
@@ -141,46 +141,57 @@ function Room() {
     const sourceId = findLocationContainer(activeId);
     if (!sourceId) return;
 
-    // Is overId a container or a disc?
     const isContainer = typeof overId === 'string' && findLocationContainer(overId) === overId;
     const targetId = isContainer ? overId as string : findLocationContainer(overId);
     if (!targetId) return;
 
-    // Same container reorder
+    // Same container reorder — move items live so placeholder shifts
     if (sourceId === targetId && !isContainer) {
       const list = getLocationDiscs(sourceId);
       const oldIdx = list.findIndex((d) => d.id === activeId);
       const newIdx = list.findIndex((d) => d.id === (overId as number));
       if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
-        const newList = arrayMove(list, oldIdx, newIdx);
-        setLocationDiscs(sourceId, newList);
-        persistLocationContainer(sourceId, newList);
+        setLocationDiscs(sourceId, arrayMove(list, oldIdx, newIdx));
       }
       return;
     }
 
-    // Cross-container move
+    // Cross-container move — move disc to target array live
     if (sourceId !== targetId) {
-      const disc = getLocationDiscs(sourceId).find((d) => d.id === activeId);
+      const sourceList = getLocationDiscs(sourceId);
+      const disc = sourceList.find((d) => d.id === activeId);
       if (!disc) return;
 
-      // Remove from source
-      const newSource = getLocationDiscs(sourceId).filter((d) => d.id !== activeId);
+      const newSource = sourceList.filter((d) => d.id !== activeId);
       setLocationDiscs(sourceId, newSource);
 
-      // Add to target
       const targetList = getLocationDiscs(targetId);
       const overIdx = targetList.findIndex((d) => d.id === (overId as number));
       const insertAt = overIdx >= 0 ? overIdx : targetList.length;
-      const newTarget = [...targetList];
       const newStatus: DiscStatus = targetId.startsWith('shelf') ? 'shelf' : 'bag';
       const newZone = targetId === 'bag-lid' ? 0 : targetId === 'bag-main' ? 1 : parseInt(targetId.split('-')[1]);
+      const newTarget = [...targetList];
       newTarget.splice(insertAt, 0, { ...disc, status: newStatus, zone: newZone });
       setLocationDiscs(targetId, newTarget);
+    }
+  };
 
-      // Persist both
-      persistLocationContainer(sourceId, newSource);
-      persistLocationContainer(targetId, newTarget);
+  const handleLocationDragEnd = async (event: DragEndEvent) => {
+    setActiveDisc(null);
+    const { active } = event;
+    const activeId = active.id as number;
+
+    // Find where the disc ended up and persist all affected containers
+    const containerId = findLocationContainer(activeId);
+    if (!containerId) return;
+
+    // Persist current state of all containers the disc could be in
+    const containers = ['bag-lid', 'bag-main', ...shelfSections.map((_, i) => `shelf-${i}`)];
+    for (const cid of containers) {
+      const discs = getLocationDiscs(cid);
+      if (discs.length > 0) {
+        persistLocationContainer(cid, discs);
+      }
     }
   };
 
@@ -347,6 +358,7 @@ function Room() {
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleLocationDragStart}
+          onDragOver={handleLocationDragOver}
           onDragEnd={handleLocationDragEnd}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

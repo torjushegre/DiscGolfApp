@@ -33,7 +33,7 @@ function SortableDisc({ disc, onClick, size = 72, idPrefix = '' }: SortableDiscP
     return (
       <div
         ref={setNodeRef}
-        style={style}
+        style={{ transition }}
         className="rounded-full border-2 border-dashed border-white/30"
         {...attributes}
         {...listeners}
