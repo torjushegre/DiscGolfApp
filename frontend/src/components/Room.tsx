@@ -27,7 +27,8 @@ const MIN_SHELF_SECTIONS = 2;
 // Container types
 type ContainerId = string; // bag-lid, bag-main, shelf-0, shelf-1, ..., podium-1, podium-2, podium-3, wall-rest
 
-function parseContainer(id: ContainerId): { type: 'bag'; zone: number } | { type: 'shelf'; zone: number } | { type: 'podium'; rank: number } | { type: 'wall-rest' } | null {
+function parseContainer(id: string | number): { type: 'bag'; zone: number } | { type: 'shelf'; zone: number } | { type: 'podium'; rank: number } | { type: 'wall-rest' } | null {
+  if (typeof id !== 'string') return null;
   if (id === 'bag-lid') return { type: 'bag', zone: 0 };
   if (id === 'bag-main') return { type: 'bag', zone: 1 };
   if (id.startsWith('shelf-')) return { type: 'shelf', zone: parseInt(id.split('-')[1]) };
@@ -185,13 +186,14 @@ function Room() {
     if (!over) return;
 
     const activeId = active.id as number;
-    const overId = over.id as string;
+    const overId = over.id;
 
     const sourceContainer = findContainer(activeId);
     if (!sourceContainer) return;
 
-    // Determine target container
-    let targetContainer: ContainerId | null = parseContainer(overId) ? overId : findContainer(overId as unknown as number);
+    // Determine target container: either overId IS a container, or it's a disc inside one
+    const parsedOver = parseContainer(overId);
+    const targetContainer: ContainerId | null = parsedOver ? String(overId) : findContainer(overId as number);
     if (!targetContainer) return;
 
     if (sourceContainer === targetContainer) return;
@@ -200,27 +202,24 @@ function Room() {
     const targetParsed = parseContainer(targetContainer);
     if (!sourceParsed || !targetParsed) return;
 
-    // Don't allow non-ace discs onto podium/wall-rest
     const disc = allDiscs.find((d) => d.id === activeId);
     if (!disc) return;
+
+    // Don't allow non-ace discs onto podium/wall-rest
     if ((targetParsed.type === 'podium' || targetParsed.type === 'wall-rest') && !disc.is_ace) return;
 
-    // Don't allow moving from podium/wall to bag/shelf via drag (they should stay in their location)
-    const sourceIsWall = sourceParsed.type === 'podium' || sourceParsed.type === 'wall-rest';
-    const targetIsWall = targetParsed.type === 'podium' || targetParsed.type === 'wall-rest';
-    const sourceIsLocation = sourceParsed.type === 'bag' || sourceParsed.type === 'shelf';
-    const targetIsLocation = targetParsed.type === 'bag' || targetParsed.type === 'shelf';
-
     // Only allow: location<->location, wall<->wall
+    const sourceIsWall = sourceParsed.type === 'podium' || sourceParsed.type === 'wall-rest';
+    const targetIsLocation = targetParsed.type === 'bag' || targetParsed.type === 'shelf';
+    const sourceIsLocation = sourceParsed.type === 'bag' || sourceParsed.type === 'shelf';
+    const targetIsWall = targetParsed.type === 'podium' || targetParsed.type === 'wall-rest';
     if (sourceIsWall && targetIsLocation) return;
     if (sourceIsLocation && targetIsWall) return;
 
     // Handle podium slot (max 1 disc) — swap if occupied
     if (targetParsed.type === 'podium') {
       const existingDisc = podiumSlots[targetParsed.rank - 1];
-      // Remove from source
       removeFromContainer(sourceContainer, activeId);
-      // If target has disc, move it to source
       if (existingDisc) {
         if (sourceParsed.type === 'podium') {
           setPodiumSlots((prev) => {
@@ -231,7 +230,6 @@ function Room() {
           });
           return;
         } else {
-          // Source was wall-rest, put existing disc there
           setRestAces((prev) => [...prev, { ...existingDisc, ace_rank: null }]);
         }
       }
@@ -254,10 +252,10 @@ function Room() {
     removeFromContainer(sourceContainer, activeId);
     const newStatus: DiscStatus = targetParsed.type === 'bag' ? 'bag' : 'shelf';
     const targetDiscs = getContainerDiscs(targetContainer);
-    const overIndex = targetDiscs.findIndex((d) => d.id === (overId as unknown as number));
+    const overIndex = targetDiscs.findIndex((d) => d.id === (overId as number));
     const insertAt = overIndex >= 0 ? overIndex : targetDiscs.length;
     const newDiscs = [...targetDiscs];
-    newDiscs.splice(insertAt, 0, { ...disc, status: newStatus, zone: targetParsed.type === 'bag' ? targetParsed.zone : targetParsed.zone });
+    newDiscs.splice(insertAt, 0, { ...disc, status: newStatus, zone: targetParsed.zone ?? 0 });
     setContainerDiscs(targetContainer, newDiscs);
   };
 
@@ -267,20 +265,20 @@ function Room() {
     if (!over) return;
 
     const activeId = active.id as number;
-    const overId = over.id as string;
+    const overId = over.id;
 
     const activeContainer = findContainer(activeId);
     if (!activeContainer) return;
 
     const isZoneDrop = !!parseContainer(overId);
-    const overContainer = isZoneDrop ? overId : findContainer(overId as unknown as number);
+    const overContainer = isZoneDrop ? String(overId) : findContainer(overId as number);
     if (!overContainer) return;
 
     // Reorder within same container
     if (activeContainer === overContainer && !isZoneDrop) {
       const currentDiscs = getContainerDiscs(activeContainer);
       const oldIndex = currentDiscs.findIndex((d) => d.id === activeId);
-      const newIndex = currentDiscs.findIndex((d) => d.id === (overId as unknown as number));
+      const newIndex = currentDiscs.findIndex((d) => d.id === (overId as number));
 
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const newList = arrayMove(currentDiscs, oldIndex, newIndex);
