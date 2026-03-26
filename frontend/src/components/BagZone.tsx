@@ -72,9 +72,9 @@ function BagZone({ lidDiscs, mainDiscs, onDiscClick }: BagZoneProps) {
         {/* === LID POCKET (Lokket) === */}
         <div className="relative mx-3 mt-4">
           {/* Pocket frame */}
-          <div className="relative rounded-xl overflow-hidden border border-neutral-700/60">
+          <div className="relative rounded-xl border border-neutral-700/60">
             {/* Pocket background - slightly lighter */}
-            <div className="absolute inset-0 bg-neutral-800/80" />
+            <div className="absolute inset-0 bg-neutral-800/80 rounded-xl" />
 
             {/* Orange zipper line at top */}
             <div className="relative h-[3px] bg-gradient-to-r from-neutral-700 via-orange-500/60 to-neutral-700">
@@ -116,8 +116,8 @@ function BagZone({ lidDiscs, mainDiscs, onDiscClick }: BagZoneProps) {
 
         {/* === MAIN COMPARTMENT === */}
         <div className="relative mx-3 mb-3">
-          <div className="relative rounded-xl overflow-hidden border border-neutral-700/60">
-            <div className="absolute inset-0 bg-neutral-850/90 bg-gradient-to-b from-neutral-800/50 to-neutral-900/80" />
+          <div className="relative rounded-xl border border-neutral-700/60">
+            <div className="absolute inset-0 bg-neutral-850/90 bg-gradient-to-b from-neutral-800/50 to-neutral-900/80 rounded-xl" />
 
             {/* Main label */}
             <div className="relative px-4 pt-2 pb-1">

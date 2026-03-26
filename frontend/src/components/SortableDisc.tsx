@@ -20,7 +20,7 @@ function SortableDisc({ disc, onClick, size = 72, idPrefix = '' }: SortableDiscP
     transition,
     isDragging,
   } = useSortable({
-    id: `${idPrefix}${disc.id}`,
+    id: idPrefix ? `${idPrefix}${disc.id}` : disc.id,
     data: { disc },
   });
 
