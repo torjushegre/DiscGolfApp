@@ -37,8 +37,10 @@ export interface DiscCreate {
   is_ace?: boolean;
   ace_course?: string;
   ace_hole?: number;
+  ace_rank?: number | null;
   color?: string;
   comment?: string;
+  zone?: number;
 }
 
 export interface Disc {
@@ -55,9 +57,11 @@ export interface Disc {
   is_ace: boolean;
   ace_hole: number | null;
   ace_course: string | null;
+  ace_rank: number | null;
   color: string;
   comment: string | null;
   sort_order: number;
+  zone: number;
   created_at: string;
   updated_at: string;
 }
@@ -71,11 +75,11 @@ export interface Course {
 export const getDiscs = async (status?: DiscStatus) => {
   let query = supabase.from('discs').select('*');
   if (status) query = query.eq('status', status);
-  return query.order('sort_order', { ascending: true });
+  return query.order('zone', { ascending: true }).order('sort_order', { ascending: true });
 };
 
 export const getAces = async () => {
-  return supabase.from('discs').select('*').eq('is_ace', true).order('created_at', { ascending: false });
+  return supabase.from('discs').select('*').eq('is_ace', true).order('ace_rank', { ascending: true, nullsFirst: false }).order('sort_order', { ascending: true });
 };
 
 export const createDisc = async (discData: DiscCreate) => {
@@ -86,14 +90,19 @@ export const moveDisc = async (discId: number, status: DiscStatus) => {
   return supabase.from('discs').update({ status }).eq('id', discId);
 };
 
+export const updateDiscFields = async (discId: number, fields: Record<string, unknown>) => {
+  return supabase.from('discs').update(fields).eq('id', discId);
+};
+
 export const toggleAce = async (discId: number, isAce: boolean, aceHole?: number, aceCourse?: string) => {
-  const update: { is_ace: boolean; ace_hole?: number | null; ace_course?: string | null } = { is_ace: isAce };
+  const update: { is_ace: boolean; ace_hole?: number | null; ace_course?: string | null; ace_rank?: number | null } = { is_ace: isAce };
   if (isAce) {
     update.ace_hole = aceHole ?? null;
     update.ace_course = aceCourse ?? null;
   } else {
     update.ace_hole = null;
     update.ace_course = null;
+    update.ace_rank = null;
   }
   return supabase.from('discs').update(update).eq('id', discId);
 };
@@ -123,11 +132,12 @@ export const updateDisc = async (discId: number, discData: Partial<DiscCreate>) 
   return supabase.from('discs').update(discData).eq('id', discId).select().single();
 };
 
-export const reorderDiscs = async (updates: { id: number; sort_order: number; status?: DiscStatus }[]) => {
+export const reorderDiscs = async (updates: { id: number; sort_order: number; status?: DiscStatus; zone?: number }[]) => {
   return Promise.all(
-    updates.map(({ id, sort_order, status }) => {
-      const data: { sort_order: number; status?: DiscStatus } = { sort_order };
-      if (status) data.status = status;
+    updates.map(({ id, sort_order, status, zone }) => {
+      const data: Record<string, unknown> = { sort_order };
+      if (status !== undefined) data.status = status;
+      if (zone !== undefined) data.zone = zone;
       return supabase.from('discs').update(data).eq('id', id);
     }),
   );
