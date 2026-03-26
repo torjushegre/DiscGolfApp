@@ -1,85 +1,113 @@
-# Disc Golf Collection App
+# DiscVault
 
-A serverless disc golf collection manager built with React, Supabase, and deployed on Vercel.
+**Your disc golf collection, organized.**
 
-## Project Structure
+A visual disc golf collection manager where you organize your discs in a virtual room — drag them between your bag, shelf, and Wall of Fame. Built with React, Supabase, and deployed on Vercel.
+
+**[Live Demo](https://disc-golf-app-psi.vercel.app/)**
+
+<!-- Add a screenshot: ![DiscVault Screenshot](docs/screenshot.png) -->
+
+---
+
+## Features
+
+- **The Room** — A visual space with a realistic disc golf bag, shelf, and Wall of Fame
+- **Drag & Drop** — Reorder discs, move them between bag zones (lid/main), shelf sections, and the Wall of Fame podium
+- **Bag with Zones** — Two compartments (lid pocket and main), modeled after a real disc golf bag
+- **Dynamic Shelf** — Auto-expanding shelf sections with visual shelf boards and brackets
+- **Wall of Fame** — Podium with gold/silver/bronze slots for your top 3 aces, plus a general area for the rest
+- **Disc Photos** — Upload photos or use color-coded SVG disc graphics
+- **5 Disc Types** — Distance Driver, Fairway Driver, Midrange, Approach, Putter with flight numbers
+- **Ace Tracking** — Mark any disc as an ace with course and hole info — it stays in your bag AND appears on the Wall of Fame
+- **All Discs View** — Browse your full collection grouped by type, with filters
+- **Confetti** — Because aces deserve celebration
+- **Garage Vibes** — Immersive dark theme with a garage-style background
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 19, TypeScript, Vite |
+| **Styling** | Tailwind CSS 4 |
+| **Drag & Drop** | @dnd-kit (core + sortable) |
+| **Animations** | Framer Motion |
+| **Backend** | Supabase (PostgreSQL + Storage) |
+| **Hosting** | Vercel |
+
+## Architecture
 
 ```
-DiscGolfPrototype/
-├── backend/              # Supabase config
-│   └── supabase/
-│       └── migrations/
-│           └── 001_initial_schema.sql
-├── frontend/             # Vite React app
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── ...config files
-├── .env.example          # Root env template
-├── .gitignore
-└── README.md
+┌─────────────┐     ┌──────────────────────┐
+│   Vercel     │     │      Supabase        │
+│   (CDN)      │     │                      │
+│              │     │  ┌────────────────┐  │
+│  React SPA ──┼────▶│  │  PostgreSQL    │  │
+│              │     │  │  (discs table) │  │
+│              │     │  └────────────────┘  │
+│              │     │  ┌────────────────┐  │
+│              │────▶│  │  Storage       │  │
+│              │     │  │  (disc photos) │  │
+│              │     │  └────────────────┘  │
+└─────────────┘     └──────────────────────┘
 ```
 
-## Quick Start
+Fully serverless — no backend server to manage. The frontend talks directly to Supabase via its client SDK. Deployments are automatic on push to `main`.
+
+## Getting Started
 
 ### 1. Supabase Setup
 
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to the SQL Editor
-3. Run the migration in `backend/supabase/migrations/001_initial_schema.sql`
-4. Go to Storage → Create bucket named `disc-photos`
-5. Set bucket to public and allow uploads
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run all migrations in `backend/supabase/migrations/` (in order) via the SQL Editor
+3. Create a Storage bucket named `disc-photos` (set to public)
 
 ### 2. Local Development
 
 ```bash
-# Install dependencies
 cd frontend && npm install
 
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your Supabase credentials
+# Configure environment
+cp ../.env.example .env.local
+# Edit .env.local with your Supabase URL and anon key
 
-# Run dev server from root
 npm run dev
 ```
 
-App runs on `http://localhost:5173`.
+Open [http://localhost:5173](http://localhost:5173).
 
-### 3. Deploy to Vercel
+### 3. Deploy
 
-1. Push code to GitHub
-2. Import project in [Vercel](https://vercel.com)
-3. Set root directory to `frontend` in Vercel settings
-4. Add environment variables in Vercel dashboard:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-5. Deploy
-
-## Environment Variables
+Push to `main` — Vercel deploys automatically. Set these environment variables in the Vercel dashboard:
 
 | Variable | Description |
 |----------|-------------|
 | `VITE_SUPABASE_URL` | Your Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous key |
 
-## Features
+## Project Structure
 
-- Add discs with photos (stored in Supabase Storage)
-- Move discs between Bag, Shelf, and Wall of Fame
-- Record aces (hole-in-ones) on courses
-- View disc collection by status
-- Ace celebration with confetti
+```
+├── frontend/                # React application
+│   ├── src/
+│   │   ├── components/      # Room, BagZone, ShelfZone, WallOfFameZone, etc.
+│   │   ├── services/        # Supabase API layer (discs.ts)
+│   │   └── lib/             # Supabase client setup
+│   └── public/              # Static assets
+├── backend/
+│   └── supabase/migrations/ # SQL schema migrations (001–004)
+├── docs/                    # Design references and assets
+└── AUTH_PLAN.md             # Authentication implementation plan
+```
 
-## Architecture
+## Roadmap
 
-- **Frontend**: React + TypeScript + Vite + Tailwind CSS (in `frontend/`)
-- **Backend**: Supabase (PostgreSQL + Storage) (config in `backend/`)
-- **Hosting**: Vercel
+- [ ] **User Authentication** — Google OAuth via Supabase Auth (see [AUTH_PLAN.md](AUTH_PLAN.md))
+- [ ] **Disc Info API** — Auto-fill disc specs from an external database
+- [ ] **Mobile Optimization** — Touch-friendly drag & drop for phones
+- [ ] **Social Features** — Share your collection, compare bags with friends
+- [ ] **Statistics Dashboard** — Disc usage tracking, favorite brands/types
 
-## Notes
+## License
 
-- No authentication - database is publicly writable (acceptable for demo)
-- Photos stored in Supabase Storage (not base64)
-- Single click deployment from Git to Vercel
-- Set Vercel root directory to `frontend/` when deploying
+[MIT](LICENSE)

@@ -1,6 +1,9 @@
 {
-  "name": "disc-golf-app",
-  "version": "0.0.0",
+  "name": "discvault",
+  "version": "1.0.0",
+  "description": "A visual disc golf collection manager — organize your discs in a virtual room with drag & drop",
+  "author": "Torjus Hegre",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
