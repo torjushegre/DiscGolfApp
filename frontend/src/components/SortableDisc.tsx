@@ -27,8 +27,21 @@ function SortableDisc({ disc, onClick, size = 72, idPrefix = '' }: SortableDiscP
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : 1,
   };
+
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="rounded-full border-2 border-dashed border-white/30"
+        {...attributes}
+        {...listeners}
+      >
+        <div style={{ width: size, height: size }} />
+      </div>
+    );
+  }
 
   return (
     <motion.div

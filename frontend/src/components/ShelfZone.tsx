@@ -90,8 +90,8 @@ function ShelfZone({ sections, onDiscClick }: ShelfZoneProps) {
         }} />
 
         {/* Side uprights */}
-        <div className="absolute top-4 bottom-4 left-1 w-[3px] bg-gradient-to-b from-stone-600/40 via-stone-500/30 to-stone-600/40 rounded" />
-        <div className="absolute top-4 bottom-4 right-1 w-[3px] bg-gradient-to-b from-stone-600/40 via-stone-500/30 to-stone-600/40 rounded" />
+        <div className="absolute top-4 bottom-4 left-1 w-[3px] bg-gradient-to-b from-stone-600/40 via-stone-500/30 to-stone-600/40 rounded pointer-events-none" />
+        <div className="absolute top-4 bottom-4 right-1 w-[3px] bg-gradient-to-b from-stone-600/40 via-stone-500/30 to-stone-600/40 rounded pointer-events-none" />
 
         <div className="relative p-5 space-y-6">
           {sections.map((sectionDiscs, idx) => (
