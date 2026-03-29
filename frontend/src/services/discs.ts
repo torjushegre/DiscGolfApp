@@ -62,6 +62,7 @@ export interface Disc {
   comment: string | null;
   sort_order: number;
   zone: number;
+  user_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -83,7 +84,8 @@ export const getAces = async () => {
 };
 
 export const createDisc = async (discData: DiscCreate) => {
-  return supabase.from('discs').insert(discData).select().single();
+  const { data: { user } } = await supabase.auth.getUser();
+  return supabase.from('discs').insert({ ...discData, user_id: user?.id }).select().single();
 };
 
 export const moveDisc = async (discId: number, status: DiscStatus) => {
@@ -108,8 +110,9 @@ export const toggleAce = async (discId: number, isAce: boolean, aceHole?: number
 };
 
 export const uploadDiscPhoto = async (discId: number, file: File) => {
+  const { data: { user } } = await supabase.auth.getUser();
   const fileExt = file.name.split('.').pop();
-  const fileName = `${discId}-${Date.now()}.${fileExt}`;
+  const fileName = `${user?.id}/${discId}-${Date.now()}.${fileExt}`;
 
   const { error: uploadError } = await supabase.storage
     .from('disc-photos')
