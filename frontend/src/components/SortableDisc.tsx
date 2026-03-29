@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'framer-motion';
+import { safeImageUrl } from '../services/discs';
 import type { Disc } from '../services/discs';
 import DiscSvg from './DiscSvg';
 
@@ -62,9 +63,9 @@ function SortableDisc({ disc, onClick, size = 72, idPrefix = '' }: SortableDiscP
         className="rounded-full overflow-hidden border-2 border-white/30 shadow-lg bg-black/20"
         style={{ width: size, height: size }}
       >
-        {disc.photo_url ? (
+        {safeImageUrl(disc.photo_url) ? (
           <img
-            src={disc.photo_url}
+            src={safeImageUrl(disc.photo_url)!}
             alt={`${disc.brand} ${disc.model}`}
             className="w-full h-full object-cover"
             draggable={false}

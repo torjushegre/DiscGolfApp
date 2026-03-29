@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getDiscs, DISC_TYPE_LABELS } from '../services/discs';
+import { getDiscs, DISC_TYPE_LABELS, safeImageUrl } from '../services/discs';
 import type { Disc, DiscType } from '../services/discs';
 import DiscSvg from './DiscSvg';
 import DiscDetailModal from './DiscDetailModal';
@@ -110,9 +110,9 @@ function AllDiscs() {
                     whileTap={{ scale: 0.98 }}
                   >
                     <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-slate-600 shrink-0">
-                      {disc.photo_url ? (
+                      {safeImageUrl(disc.photo_url) ? (
                         <img
-                          src={disc.photo_url}
+                          src={safeImageUrl(disc.photo_url)!}
                           alt={`${disc.brand} ${disc.model}`}
                           className="w-full h-full object-cover"
                         />

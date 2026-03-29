@@ -9,6 +9,18 @@ const MAX_TEXT_LENGTH = 200;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
+/** Only allow https URLs from supabase storage */
+export function safeImageUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
 export const DISC_TYPE_LABELS: Record<DiscType, string> = {
   distance_driver: 'Distance Driver',
   fairway_driver: 'Fairway Driver',
@@ -93,7 +105,7 @@ function sanitizeDiscData(data: DiscCreate): DiscCreate {
     model: truncate(data.model, MAX_TEXT_LENGTH)!,
     comment: truncate(data.comment, 500),
     ace_course: truncate(data.ace_course, MAX_TEXT_LENGTH),
-    color: truncate(data.color, 20),
+    color: /^#[0-9a-f]{6}$/i.test(data.color || '') ? data.color : '#e74c3c',
     disc_type: VALID_DISC_TYPES.includes(data.disc_type) ? data.disc_type : 'midrange',
     status: data.status && VALID_STATUSES.includes(data.status) ? data.status : 'shelf',
     speed: clampInt(data.speed, 0, 15),
@@ -206,7 +218,7 @@ export const uploadDiscPhoto = async (discId: number, file: File) => {
 };
 
 export const getCourses = async () => {
-  return supabase.from('courses').select('*');
+  return supabase.from('courses').select('*').limit(1000);
 };
 
 export const updateDisc = async (discId: number, discData: Partial<DiscCreate>) => {

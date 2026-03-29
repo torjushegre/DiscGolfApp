@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { updateDisc, deleteDisc, DISC_TYPE_LABELS, DISC_COLORS } from '../services/discs';
+import { updateDisc, deleteDisc, DISC_TYPE_LABELS, DISC_COLORS, safeImageUrl } from '../services/discs';
 import type { Disc, DiscType, DiscStatus } from '../services/discs';
 import DiscSvg from './DiscSvg';
 
@@ -125,9 +125,9 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
         <div className="p-6">
           {/* Photo or SVG */}
           <div className="flex justify-center mb-6">
-            {disc.photo_url ? (
+            {safeImageUrl(disc.photo_url) ? (
               <img
-                src={disc.photo_url}
+                src={safeImageUrl(disc.photo_url)!}
                 alt={`${disc.brand} ${disc.model}`}
                 className="w-48 h-48 object-cover rounded-full border-4 border-slate-600"
               />

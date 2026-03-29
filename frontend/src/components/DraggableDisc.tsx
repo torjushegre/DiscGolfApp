@@ -1,5 +1,6 @@
 import { useDraggable } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
+import { safeImageUrl } from '../services/discs';
 import type { Disc } from '../services/discs';
 import DiscSvg from './DiscSvg';
 
@@ -41,9 +42,9 @@ function DraggableDisc({ disc, onClick, isDragging = false, compact = false }: D
         className="rounded-full overflow-hidden border-2 border-white/30 shadow-lg bg-black/20"
         style={{ width: size, height: size }}
       >
-        {disc.photo_url ? (
+        {safeImageUrl(disc.photo_url) ? (
           <img
-            src={disc.photo_url}
+            src={safeImageUrl(disc.photo_url)!}
             alt={`${disc.brand} ${disc.model}`}
             className="w-full h-full object-cover"
             draggable={false}

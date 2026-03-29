@@ -5,9 +5,10 @@ interface DiscSvgProps {
 }
 
 function DiscSvg({ color, size = 80, className = '' }: DiscSvgProps) {
-  // Darken the color for the rim
-  const rimColor = darken(color, 0.25);
-  const highlightColor = lighten(color, 0.2);
+  // Only allow valid hex colors — fallback to red
+  const safeColor = /^#[0-9a-f]{6}$/i.test(color) ? color : '#e74c3c';
+  const rimColor = darken(safeColor, 0.25);
+  const highlightColor = lighten(safeColor, 0.2);
 
   return (
     <svg
@@ -20,7 +21,7 @@ function DiscSvg({ color, size = 80, className = '' }: DiscSvgProps) {
       {/* Outer rim */}
       <circle cx="50" cy="50" r="48" fill={rimColor} />
       {/* Flight plate */}
-      <circle cx="50" cy="50" r="38" fill={color} />
+      <circle cx="50" cy="50" r="38" fill={safeColor} />
       {/* Subtle highlight arc */}
       <path
         d="M 25 35 Q 50 15 75 35"
