@@ -150,9 +150,11 @@ export const deleteDisc = async (discId: number) => {
   const { data: disc } = await supabase.from('discs').select('photo_url').eq('id', discId).single();
 
   if (disc?.photo_url) {
-    const fileName = disc.photo_url.split('/').pop();
-    if (fileName) {
-      await supabase.storage.from('disc-photos').remove([fileName]);
+    // Photo path is "{user_id}/{discId}-{timestamp}.{ext}" — extract from public URL
+    const url = new URL(disc.photo_url);
+    const parts = url.pathname.split('/disc-photos/');
+    if (parts[1]) {
+      await supabase.storage.from('disc-photos').remove([decodeURIComponent(parts[1])]);
     }
   }
 
