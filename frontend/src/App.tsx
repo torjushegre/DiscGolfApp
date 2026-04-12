@@ -5,6 +5,7 @@ import AllDiscs from './components/AllDiscs';
 import AddDiscForm from './components/AddDiscForm';
 import LoginPage from './components/LoginPage';
 import Navbar from './components/Navbar';
+import ProfilePage from './components/ProfilePage';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -29,6 +30,7 @@ function AppContent() {
           <Route path="/" element={<Room />} />
           <Route path="/all-discs" element={<AllDiscs />} />
           <Route path="/add-disc" element={<AddDiscForm />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </div>
     </>

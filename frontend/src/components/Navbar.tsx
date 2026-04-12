@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 function Navbar() {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   const navItems = [
     { name: 'Rommet', path: '/' },
@@ -16,7 +16,12 @@ function Navbar() {
     return location.pathname === path;
   };
 
-  const displayName = user?.user_metadata?.full_name || user?.email || '';
+  const displayName =
+    user?.user_metadata?.display_name ||
+    user?.user_metadata?.full_name ||
+    user?.email ||
+    '';
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50">
@@ -40,15 +45,21 @@ function Navbar() {
                 {item.name}
               </Link>
             ))}
-            <div className="ml-4 pl-4 border-l border-slate-700/50 flex items-center gap-3">
-              <span className="text-sm text-gray-400 hidden sm:inline">{displayName}</span>
-              <button
-                onClick={signOut}
-                className="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-slate-800 transition-colors"
-              >
-                Logg ut
-              </button>
-            </div>
+            <Link
+              to="/profile"
+              className={`ml-4 pl-4 border-l border-slate-700/50 flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+                isActive('/profile')
+                  ? 'text-emerald-300'
+                  : 'text-gray-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="h-7 w-7 rounded-full border border-slate-600" />
+              ) : (
+                <div className="h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center text-sm">👤</div>
+              )}
+              <span className="text-sm hidden sm:inline">{displayName}</span>
+            </Link>
           </div>
         </div>
       </div>
