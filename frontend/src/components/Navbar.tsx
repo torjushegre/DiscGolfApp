@@ -23,7 +23,7 @@ function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="text-xl font-bold text-white tracking-tight">
-            DiscVault
+            Vaulta
           </Link>
           <div className="flex items-center gap-1">
             {navItems.map((item) => (

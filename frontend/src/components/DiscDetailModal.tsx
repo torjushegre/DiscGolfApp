@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { updateDisc, deleteDisc, DISC_TYPE_LABELS, DISC_COLORS, safeImageUrl } from '../services/discs';
+import { updateDisc, deleteDisc, markDiscAsLost, DISC_TYPE_LABELS, DISC_COLORS, safeImageUrl } from '../services/discs';
 import type { Disc, DiscType, DiscStatus } from '../services/discs';
 import DiscSvg from './DiscSvg';
 
@@ -17,6 +17,7 @@ interface DiscDetailModalProps {
 function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showLostConfirm, setShowLostConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,6 +85,20 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
       onClose();
     } catch (err: any) {
       setError(err?.message || 'Klarte ikke å slette');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkLost = async () => {
+    setLoading(true);
+    try {
+      const { error: lostError } = await markDiscAsLost(disc.id);
+      if (lostError) throw lostError;
+      onDelete(disc.id);
+      onClose();
+    } catch (err: any) {
+      setError(err?.message || 'Klarte ikke å markere som mistet');
     } finally {
       setLoading(false);
     }
@@ -331,7 +346,7 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
               <div>
                 <span className="text-sm text-gray-500">Plassering</span>
                 <p className="font-medium text-white">
-                  {disc.status === 'bag' ? 'I bagen' : 'På hylla'}
+                  {disc.status === 'bag' ? 'I bagen' : disc.status === 'shelf' ? 'På hylla' : 'Mistet'}
                 </p>
               </div>
 
@@ -357,12 +372,22 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
         {/* Footer */}
         <div className="flex justify-between items-center p-6 border-t border-slate-700">
           {!isEditing && (
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="px-4 py-2 text-red-400 hover:text-red-300 font-medium"
-            >
-              Slett
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-4 py-2 text-red-400 hover:text-red-300 font-medium"
+              >
+                Slett
+              </button>
+              {disc.status !== 'lost' && (
+                <button
+                  onClick={() => setShowLostConfirm(true)}
+                  className="px-4 py-2 text-amber-400 hover:text-amber-300 font-medium"
+                >
+                  Marker som mistet
+                </button>
+              )}
+            </div>
           )}
 
           <div className="flex gap-3 ml-auto">
@@ -393,6 +418,34 @@ function DiscDetailModal({ disc, isOpen, onClose, onUpdate, onDelete }: DiscDeta
             )}
           </div>
         </div>
+
+        {/* Lost Confirmation */}
+        {showLostConfirm && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-700">
+              <h3 className="text-xl font-bold text-white mb-4">Marker som mistet?</h3>
+              <p className="text-gray-400 mb-6">
+                Marker {disc.brand} {disc.model} som mistet? Du finner den igjen under "Mistet" i Alle discer.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowLostConfirm(false)}
+                  className="px-4 py-2 text-gray-400 hover:text-white"
+                  disabled={loading}
+                >
+                  Avbryt
+                </button>
+                <button
+                  onClick={handleMarkLost}
+                  disabled={loading}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50"
+                >
+                  {loading ? 'Lagrer...' : 'Marker som mistet'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete Confirmation */}
         {showDeleteConfirm && (

@@ -23,6 +23,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+OAuth.txt
 
 
 # Frontend specific (keep node_modules and dist here too as safety)
@@ -30,6 +31,10 @@ frontend/node_modules
 frontend/dist
 frontend/.env.local
 frontend/.env.*.local
+
+# Private docs (security checklists, auth plans, etc.)
+docs/SECURITY_CHECKLIST.md
+AUTH_PLAN.md
 
 # Backend / Supabase
 backend/supabase/.temp

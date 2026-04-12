@@ -7,7 +7,8 @@ function LoginPage() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center space-y-8">
         <div>
-          <h1 className="text-5xl font-bold text-white tracking-tight">DiscVault</h1>
+          <img src="/vaulta-logo.png" alt="Vaulta" className="h-40 mx-auto mb-4" />
+          <h1 className="text-5xl font-bold text-white tracking-tight">Vaulta</h1>
           <p className="text-gray-400 mt-3 text-lg">Din disc golf-samling, organisert.</p>
         </div>
 

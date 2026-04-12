@@ -1,10 +1,10 @@
 import { supabase } from '../lib/supabase';
 
 export type DiscType = 'distance_driver' | 'fairway_driver' | 'midrange' | 'approach' | 'putter';
-export type DiscStatus = 'bag' | 'shelf';
+export type DiscStatus = 'bag' | 'shelf' | 'lost';
 
 const VALID_DISC_TYPES: DiscType[] = ['distance_driver', 'fairway_driver', 'midrange', 'approach', 'putter'];
-const VALID_STATUSES: DiscStatus[] = ['bag', 'shelf'];
+const VALID_STATUSES: DiscStatus[] = ['bag', 'shelf', 'lost'];
 const MAX_TEXT_LENGTH = 200;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -162,6 +162,10 @@ export const createDisc = async (discData: DiscCreate) => {
 export const moveDisc = async (discId: number, status: DiscStatus) => {
   if (!VALID_STATUSES.includes(status)) throw new Error('Invalid status');
   return supabase.from('discs').update({ status }).eq('id', discId);
+};
+
+export const markDiscAsLost = async (discId: number) => {
+  return supabase.from('discs').update({ status: 'lost' }).eq('id', discId);
 };
 
 export const updateDiscFields = async (discId: number, fields: Record<string, unknown>) => {

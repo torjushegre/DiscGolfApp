@@ -12,7 +12,7 @@ function AllDiscs() {
   const [loading, setLoading] = useState(true);
   const [selectedDisc, setSelectedDisc] = useState<Disc | null>(null);
   const [filterType, setFilterType] = useState<DiscType | 'all'>('all');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'bag' | 'shelf'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'bag' | 'shelf' | 'lost'>('all');
 
   useEffect(() => {
     fetchDiscs();
@@ -74,12 +74,13 @@ function AllDiscs() {
           </select>
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as 'all' | 'bag' | 'shelf')}
+            onChange={(e) => setFilterStatus(e.target.value as 'all' | 'bag' | 'shelf' | 'lost')}
             className="px-3 py-2 bg-slate-800 text-white rounded-lg border border-slate-600 text-sm"
           >
             <option value="all">Alle steder</option>
             <option value="bag">I bagen</option>
             <option value="shelf">På hylla</option>
+            <option value="lost">Mistet</option>
           </select>
         </div>
       </div>
@@ -131,9 +132,11 @@ function AllDiscs() {
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                           disc.status === 'bag'
                             ? 'bg-emerald-900/50 text-emerald-300'
-                            : 'bg-amber-900/50 text-amber-300'
+                            : disc.status === 'shelf'
+                            ? 'bg-amber-900/50 text-amber-300'
+                            : 'bg-red-900/50 text-red-300'
                         }`}>
-                          {disc.status === 'bag' ? 'Bag' : 'Hylle'}
+                          {disc.status === 'bag' ? 'Bag' : disc.status === 'shelf' ? 'Hylle' : 'Mistet'}
                         </span>
                         {disc.is_ace && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-yellow-900/50 text-yellow-300">

@@ -1,4 +1,4 @@
-# DiscVault
+# Vaulta
 
 **Your disc golf collection, organized.**
 
@@ -6,7 +6,7 @@ A visual disc golf collection manager where you organize your discs in a virtual
 
 **[Live Demo](https://disc-golf-app-psi.vercel.app/)**
 
-<!-- Add a screenshot: ![DiscVault Screenshot](docs/screenshot.png) -->
+<!-- Add a screenshot: ![Vaulta Screenshot](docs/screenshot.png) -->
 
 ---
 
